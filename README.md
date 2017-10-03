@@ -1,34 +1,25 @@
-## redfour
+## ioredfour
 
-A small library that implements a binary semaphore using Redis. See our [blog post](https://mixmax.com/blog/redfour-semaphore-redis-node) introducing this library.
-
-This is useful if you'd like to restrict access to one part of your code such that only one resource (the one with the lock) can access it at a time. Then, if another resource wants to access it, it will have to wait until the first resource is finished.
-
-[Other redis-based locks](https://github.com/TheDeveloper/warlock/blob/master/lib/warlock.js#L67) implement the 'wait' behavior using polling. Redfour's implemention is MUCH faster, as it relies on Redis pubsub notifications to get notified when the lock is released.
-
-For example, say you have code that checks to see if an access token is expired, and then if it is, refreshes it. You don't want two parallel processes trying to check for expiration - both will consider the token expired and refresh at the same time. Instead, you can use this module to ensure only one resource has access to that codepath at a time.
+> Originally forked from **[redfour](https://www.npmjs.com/package/redfour)**. Main difference being that redfour uses [node_redis](https://www.npmjs.com/package/redis) + [node-redis-scripty](https://www.npmjs.com/package/node-redis-scripty) while ioredfour uses [ioredis](https://www.npmjs.com/package/ioredis).
 
 ## Install
 
-```sh
-yarn add redfour
-```
 or
 ```sh
-npm install redfour --save
+npm install ioredfour --save
 ```
 
 ## Usage example
 
 ```js
-var Lock = require('redfour');
+var Lock = require('ioredfour');
 
 var testLock = new Lock({
-  // Can also be an `Object` of options to pass to `redis.createClient`
-  // https://github.com/NodeRedis/node_redis#rediscreateclient, or an existing
-  // instance of `RedisClient` (if you want to reuse one connection, though this
+  // Can also be an `Object` of options to pass to `new Redis()`
+  // https://www.npmjs.com/package/ioredis#connect-to-redis, or an existing
+  // instance of `ioredis` (if you want to reuse one connection, though this
   // module must create a second).
-  redis: 'redis://localhost:6381',
+  redis: 'redis://localhost:6379',
   namespace: 'mylock'
 });
 var id = Math.random();
@@ -72,6 +63,7 @@ setTimeout(() => {
 We welcome pull requests! Please lint your code.
 
 ## Release History
+* 1.0.2-ioredis Forked from redfour and switch node_redis with ioredis
 * 1.0.2 Don't use `instanceof` to determine if the `redis` constructor option is of
         type `redis.RedisClient`.
 * 1.0.1 Fix issue where you could only pass in a Redis connection URI.
