@@ -1,6 +1,6 @@
 {
     "name": "ioredfour",
-    "version": "1.0.2-ioredis",
+    "version": "1.0.2-ioredis-02",
     "description": "A redis binary semaphore",
     "main": "lib/ioredfour.js",
     "scripts": {
@@ -10,7 +10,12 @@
         "type": "git",
         "url": "git+https://github.com/nodemailer/redfour.git"
     },
-    "keywords": ["redis", "semaphore", "mutex", "node"],
+    "keywords": [
+        "redis",
+        "semaphore",
+        "mutex",
+        "node"
+    ],
     "author": "Mixmax <hello@mixmax.com> (https://mixmax.com/)",
     "license": "MIT",
     "bugs": {
@@ -19,15 +24,15 @@
     "homepage": "https://github.com/nodemailer/redfour#readme",
     "devDependencies": {
         "chai": "^4.1.2",
-        "eslint": ">=4",
+        "eslint": ">=5",
         "eslint-config-nodemailer": "^1.2.0",
-        "grunt": "^1.0.1",
+        "grunt": "^1.0.3",
         "grunt-cli": "^1.2.0",
-        "grunt-eslint": "^20.1.0",
+        "grunt-eslint": "^21.0.0",
         "grunt-mocha-test": "^0.13.3",
-        "mocha": "^4.0.0"
+        "mocha": "^5.2.0"
     },
     "dependencies": {
-        "ioredis": "^3.1.4"
+        "ioredis": "4.0.0"
     }
 }
