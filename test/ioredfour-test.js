@@ -1,5 +1,4 @@
 /* eslint no-unused-expressions:0 */
-/* globals beforeEach, describe, it */
 
 'use strict';
 
@@ -13,7 +12,7 @@ const REDIS_CONFIG = 'redis://localhost:6379/11';
 // and testing keys were not immediately deleted (these expire automatically after a while)
 let testKey = 'TEST:' + Date.now();
 
-describe('lock', function() {
+describe('lock', function () {
     this.timeout(10000); //eslint-disable-line no-invalid-this
 
     let testLock;
