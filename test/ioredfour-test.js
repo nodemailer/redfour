@@ -21,115 +21,77 @@ describe('lock', function () {
         const redis = new Redis(REDIS_CONFIG);
         testLock = new Lock({
             redis,
-            namespace: 'testLock'
+            namespace: 'testLock',
+            minReplications: 0,
         });
 
         done();
     });
 
-    it('should acquire and release a lock only with a valid index', done => {
-        testLock.acquireLock(testKey, 60 * 100, (err, lock) => {
-            expect(err).not.to.be.ok;
-            expect(lock.success).to.equal(true);
-            expect(lock.id).to.equal(testKey);
-            expect(lock.index).to.be.above(0);
+    it('should acquire and release a lock only with a valid index', async () => {
+        const lock = await testLock.acquireLock(testKey, 60 * 100);
+        expect(lock.success).to.equal(true);
+        expect(lock.id).to.equal(testKey);
+        expect(lock.index).to.be.above(0);
 
-            testLock.acquireLock(testKey, 60 * 100, (err, invalidLock) => {
-                expect(err).not.to.be.ok;
-                expect(invalidLock.success).to.equal(false);
+        const invalidLock = await testLock.acquireLock(testKey, 60 * 100);
+        expect(invalidLock.success).to.equal(false);
 
-                testLock.releaseLock(
-                    {
-                        id: testKey,
-                        index: -10
-                    },
-                    (err, invalidRelease) => {
-                        expect(err).not.to.be.ok;
-                        expect(invalidRelease.success).to.equal(false);
-
-                        testLock.releaseLock(lock, (err, release) => {
-                            expect(err).not.to.be.ok;
-                            expect(release.success).to.equal(true);
-                            done();
-                        });
-                    }
-                );
-            });
+        const invalidRelease = await testLock.releaseLock({
+            id: testKey,
+            index: -10
         });
+        expect(invalidRelease.success).to.equal(false);
+
+        const release = await testLock.releaseLock(lock);
+        expect(release.success).to.equal(true);
     });
 
-    it('should wait and acquire a lock', done => {
-        testLock.acquireLock(testKey, 1 * 60 * 1000, (err, initialLock) => {
-            expect(err).to.not.be.ok;
-            expect(initialLock.success).to.equal(true);
+    it('should wait and acquire a lock', async () => {
+        const initialLock = await testLock.acquireLock(testKey, 1 * 60 * 1000);
+        expect(initialLock.success).to.equal(true);
 
-            let start = Date.now();
-            testLock.waitAcquireLock(testKey, 60 * 100, 3000, (err, newLock) => {
-                expect(err).to.not.be.ok;
-                expect(newLock.success).to.equal(true);
-                expect(Date.now() - start).to.be.above(1450);
+        let start = Date.now();
+        setTimeout(() => {
+            testLock.releaseLock(initialLock);
+        }, 1500);
+        const newLock = await testLock.waitAcquireLock(testKey, 60 * 100, 3000);
+        expect(newLock.success).to.equal(true);
+        expect(Date.now() - start).to.be.above(1450);
 
-                testLock.releaseLock(newLock, err => {
-                    expect(err).to.not.be.ok;
-                    done();
-                });
-            });
-
-            setTimeout(() => {
-                testLock.releaseLock(initialLock, err => {
-                    expect(err).to.not.be.ok;
-                });
-            }, 1500);
-        });
+        await testLock.releaseLock(newLock);
     });
 
-    it('Should wait and not acquire a lock', done => {
-        testLock.acquireLock(testKey, 1 * 60 * 1000, (err, initialLock) => {
-            expect(err).to.not.be.ok;
-            expect(initialLock.success).to.equal(true);
+    it('Should wait and not acquire a lock', async () => {
+        const initialLock = await testLock.acquireLock(testKey, 1 * 60 * 1000);
+        expect(initialLock.success).to.equal(true);
 
-            let start = Date.now();
-            testLock.waitAcquireLock(testKey, 1 * 60 * 1000, 1500, (err, newLock) => {
-                expect(err).to.not.be.ok;
-                expect(newLock.success).to.equal(false);
-                expect(Date.now() - start).to.be.above(1450);
-                testLock.releaseLock(initialLock, err => {
-                    expect(err).to.not.be.ok;
-                    done();
-                });
-            });
-        });
+        let start = Date.now();
+        const newLock = await testLock.waitAcquireLock(testKey, 1 * 60 * 1000, 1500);
+        expect(newLock.success).to.equal(false);
+        expect(Date.now() - start).to.be.above(1450);
+        await testLock.releaseLock(initialLock);
     });
 
-    it('Should be able to be constructed from a pre-existing connection', done => {
+    it('Should be able to be constructed from a pre-existing connection', async () => {
         const redis = new Redis(REDIS_CONFIG);
         let testExistingLock = new Lock({
             redis,
             namespace: 'testExistingLock'
         });
 
-        testExistingLock.acquireLock(testKey, 1 * 60 * 1000, (err, initialLock) => {
-            expect(err).to.not.be.ok;
-            expect(initialLock.success).to.equal(true);
+        const initialLock = await testExistingLock.acquireLock(testKey, 1 * 60 * 1000);
+        expect(initialLock.success).to.equal(true);
+        setTimeout(() => {
+            testExistingLock.releaseLock(initialLock);
+        }, 1500);
 
-            let start = Date.now();
-            testExistingLock.waitAcquireLock(testKey, 60 * 100, 3000, (err, newLock) => {
-                expect(err).to.not.be.ok;
-                expect(newLock.success).to.equal(true);
-                expect(Date.now() - start).to.be.above(1450);
+        let start = Date.now();
+        const newLock = await testExistingLock.waitAcquireLock(testKey, 60 * 100, 3000);
+        expect(newLock.success).to.equal(true);
+        expect(Date.now() - start).to.be.above(1450);
 
-                testExistingLock.releaseLock(newLock, err => {
-                    expect(err).to.not.be.ok;
-                    done();
-                });
-            });
-
-            setTimeout(() => {
-                testExistingLock.releaseLock(initialLock, err => {
-                    expect(err).to.not.be.ok;
-                });
-            }, 1500);
-        });
+        await testExistingLock.releaseLock(newLock);
     });
 
     it('should throw if redis is not provided', () => {
