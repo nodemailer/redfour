@@ -47,7 +47,7 @@ describe('lock', function () {
         expect(release.success).to.equal(true);
     });
 
-    it('should wait and acquire a lock', async () => {
+    it('should wait and acquire a lock after releasing', async () => {
         const initialLock = await testLock.acquireLock(testKey, 1 * 60 * 1000);
         expect(initialLock.success).to.equal(true);
 
@@ -55,6 +55,36 @@ describe('lock', function () {
         setTimeout(() => {
             testLock.releaseLock(initialLock);
         }, 1500);
+        const newLock = await testLock.waitAcquireLock(testKey, 60 * 100, 3000);
+        expect(newLock.success).to.equal(true);
+        expect(Date.now() - start).to.be.above(1450);
+
+        await testLock.releaseLock(newLock);
+    });
+
+    it('should wait and acquire a lock after expiring', async () => {
+        const initialLock = await testLock.acquireLock(testKey, 1.5 * 1000);
+        expect(initialLock.success).to.equal(true);
+
+        let start = Date.now();
+        const newLock = await testLock.waitAcquireLock(testKey, 60 * 100, 3000);
+        expect(newLock.success).to.equal(true);
+        expect(Date.now() - start).to.be.above(1450);
+
+        await testLock.releaseLock(newLock);
+    });
+
+    it('should wait and acquire a lock after extending', async () => {
+        const initialLock = await testLock.acquireLock(testKey, 1 * 1000);
+        expect(initialLock.success).to.equal(true);
+        setTimeout(() => {
+            testLock.extendLock(initialLock, 10000);
+        }, 500);
+        setTimeout(() => {
+            testLock.releaseLock(initialLock);
+        }, 1500);
+
+        let start = Date.now();
         const newLock = await testLock.waitAcquireLock(testKey, 60 * 100, 3000);
         expect(newLock.success).to.equal(true);
         expect(Date.now() - start).to.be.above(1450);
