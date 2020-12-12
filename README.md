@@ -1,61 +1,68 @@
 ## ioredfour
 
+> Originally forked from **[ioredfour](https://www.npmjs.com/package/ioredfour)**. Main differences being that @triggi/ioredfour provides better consitency in a failover environment, has a Promise-based interface and allows to extend locks.
+
 > Originally forked from **[redfour](https://www.npmjs.com/package/redfour)**. Main difference being that redfour uses [node_redis](https://www.npmjs.com/package/redis) + [node-redis-scripty](https://www.npmjs.com/package/node-redis-scripty) while ioredfour uses [ioredis](https://www.npmjs.com/package/ioredis).
 
 ## Install
 
 or
 ```sh
-npm install ioredfour --save
+npm install @triggi/ioredfour --save
 ```
 
 ## Usage example
 
 ```js
-var Lock = require('ioredfour');
+const Lock = require('ioredfour');
 
-var testLock = new Lock({
-  // Can also be an `Object` of options to pass to `new Redis()`
-  // https://www.npmjs.com/package/ioredis#connect-to-redis, or an existing
-  // instance of `ioredis` (if you want to reuse one connection, though this
-  // module must create a second).
-  redis: 'redis://localhost:6379',
-  namespace: 'mylock'
-});
-var id = Math.random();
-var firstlock;
+(async ()=> {
+  const testLock = new Lock({
+    // Can also be an `Object` of options to pass to `new Redis()`
+    // https://www.npmjs.com/package/ioredis#connect-to-redis, or an existing
+    // instance of `ioredis` (if you want to reuse one connection, though this
+    // module must create a second).
+    redis: 'redis://localhost:6379',
+    namespace: 'mylock',
+    // Don't consider the lock owned until writes have been replicated at least this many times
+    minReplications: 1,
+    // Wait at most this many miliseconds for replication
+    replicationTimeout: 500,
+  });
+  const id = Math.random();
 
-// First, acquire the lock.
-testLock.acquireLock(id, 60 * 1000 /* Lock expires after 60sec if not released */ , function(err, lock) {
-  if (err) {
-    console.log('error acquiring', err);
-  } else if (!lock.success) {
-    console.log('lock exists', lock);
+  // First, acquire the lock.
+  const firstlock = await testLock.acquireLock(id, 60 * 1000 /* Lock expires after 60sec if not released */).catch(e => {
+    console.log('error acquiring first lock', e);
+  });
+  if (!firstlock.success) {
+    console.log('lock exists', firstlock);
   } else {
     console.log('lock acquired initially');
-    firstlock = lock;
   }
-});
 
-// Another server might be waiting for the lock like this.
-testLock.waitAcquireLock(id, 60 * 1000 /* Lock expires after 60sec */ , 10 * 1000 /* Wait for lock for up to 10sec */ , function(err, lock) {
-  if (err) {
-    console.log('error wait acquiring', err);
-  } else {
-    console.log('lock acquired after wait!', lock);
-  }
-});
-
-// When the original lock is released, `waitAcquireLock` is fired on the other server.
-setTimeout(() => {
-  testLock.releaseLock(firstlock, (err) => {
-    if (err) {
-      console.log('error releasing', err);
+  // Another server might be waiting for the lock like this.
+  testLock.waitAcquireLock(id, 60 * 1000 /* Lock expires after 60sec */ , 10 * 1000 /* Wait for lock for up to 10sec */).then(secondlock => {
+    if (secondlock.success) {
+      console.log('second lock acquired after wait!', secondlock);
     } else {
-      console.log('released lock');
+      console.log('second lock not acquired after wait!', secondlock);
     }
+  }).catch(e => {
+    console.log('error wait acquiring', e);
   });
-}, 3 * 1000);
+
+  // When the original lock is released, `waitAcquireLock` is fired on the other server.
+  setTimeout(async () => {
+    try {
+      await testLock.releaseLock(firstlock);
+      console.log('released lock');
+    } catch(e) {
+      console.log('error releasing', e);
+    }
+  }, 10 * 1000);
+})();
+
 ```
 
 ## Contributing
@@ -63,6 +70,7 @@ setTimeout(() => {
 We welcome pull requests! Please lint your code.
 
 ## Release History
+* 1.1.0 add Lock.extend, promisified interface, check for replication
 * 1.0.2-ioredis Forked from redfour and switch node_redis with ioredis
 * 1.0.2 Don't use `instanceof` to determine if the `redis` constructor option is of
         type `redis.RedisClient`.

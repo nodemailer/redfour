@@ -1,14 +1,14 @@
 {
-    "name": "ioredfour",
-    "version": "1.0.2-ioredis-03",
-    "description": "A redis binary semaphore",
+    "name": "@triggi/ioredfour",
+    "version": "1.0.0-pre1",
+    "description": "A redis binary semaphore with some consistency",
     "main": "lib/ioredfour.js",
     "scripts": {
         "test": "grunt"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/nodemailer/redfour.git"
+        "url": "git+https://github.com/olisto/ioredfour.git"
     },
     "keywords": [
         "redis",
@@ -19,9 +19,9 @@
     "author": "Mixmax <hello@mixmax.com> (https://mixmax.com/)",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/nodemailer/redfour/issues"
+        "url": "https://github.com/olisto/ioredfour/issues"
     },
-    "homepage": "https://github.com/nodemailer/redfour#readme",
+    "homepage": "https://github.com/olisto/ioredfour#readme",
     "devDependencies": {
         "chai": "4.2.0",
         "eslint": "7.1.0",
