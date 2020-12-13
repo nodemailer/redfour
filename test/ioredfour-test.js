@@ -8,9 +8,9 @@ const Redis = require('ioredis');
 
 const REDIS_CONFIG = 'redis://localhost:6379/11';
 
-// We need an unique key just in case a previous test run ended with an exception
+// We need an unique key just in case a previous test ended with an exception
 // and testing keys were not immediately deleted (these expire automatically after a while)
-let testKey = 'TEST:' + Date.now();
+let testKey;
 
 describe('lock', function () {
     this.timeout(10000); //eslint-disable-line no-invalid-this
@@ -24,7 +24,7 @@ describe('lock', function () {
             namespace: 'testLock',
             minReplications: 0,
         });
-
+        testKey = 'TEST:' + Date.now() + Math.random();
         done();
     });
 
@@ -32,14 +32,14 @@ describe('lock', function () {
         const lock = await testLock.acquireLock(testKey, 60 * 100);
         expect(lock.success).to.equal(true);
         expect(lock.id).to.equal(testKey);
-        expect(lock.index).to.be.above(0);
+        expect(lock.index).to.be.a('string').with.length.above(0);
 
         const invalidLock = await testLock.acquireLock(testKey, 60 * 100);
         expect(invalidLock.success).to.equal(false);
 
         const invalidRelease = await testLock.releaseLock({
             id: testKey,
-            index: -10
+            index: '123'
         });
         expect(invalidRelease.success).to.equal(false);
 
