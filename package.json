@@ -1,14 +1,14 @@
 {
-    "name": "ioredfour",
-    "version": "1.0.2-ioredis-03",
-    "description": "A redis binary semaphore",
+    "name": "@triggi/ioredfour",
+    "version": "1.1.0-pre1",
+    "description": "A redis binary semaphore with some consistency",
     "main": "lib/ioredfour.js",
     "scripts": {
         "test": "grunt"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/nodemailer/redfour.git"
+        "url": "git+https://github.com/olisto/ioredfour.git"
     },
     "keywords": [
         "redis",
@@ -16,12 +16,12 @@
         "mutex",
         "node"
     ],
-    "author": "Mixmax <hello@mixmax.com> (https://mixmax.com/)",
+    "author": "Mixmax <hello@mixmax.com> (https://mixmax.com/), Daniel Reus (https://github.com/dreusel)",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/nodemailer/redfour/issues"
+        "url": "https://github.com/olisto/ioredfour/issues"
     },
-    "homepage": "https://github.com/nodemailer/redfour#readme",
+    "homepage": "https://github.com/olisto/ioredfour#readme",
     "devDependencies": {
         "chai": "4.2.0",
         "eslint": "7.1.0",
@@ -34,6 +34,6 @@
         "mocha": "7.2.0"
     },
     "dependencies": {
-        "ioredis": "4.17.3"
+        "ioredis": "^4.19.2"
     }
 }
