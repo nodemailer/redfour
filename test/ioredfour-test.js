@@ -124,6 +124,35 @@ describe('lock', function () {
         await testExistingLock.releaseLock(newLock);
     });
 
+    it('also works with callbacks', (done) => {
+        testLock.acquireLock(testKey, 1 * 1000, (err, initialLock) => {
+            expect(err).to.not.be.ok;
+            expect(initialLock.success).to.equal(true);
+            setTimeout(() => {
+                testLock.extendLock(initialLock, 10000, (err) => {
+                    expect(err).to.not.be.ok;
+                });
+            }, 500);
+            setTimeout(() => {
+                testLock.releaseLock(initialLock, (err) => {
+                    expect(err).to.not.be.ok;
+                });
+            }, 1500);
+
+            let start = Date.now();
+            testLock.waitAcquireLock(testKey, 60 * 100, 3000, (err, newLock) => {
+                expect(err).to.not.be.ok;
+                expect(newLock.success).to.equal(true);
+                expect(Date.now() - start).to.be.above(1450);
+
+                testLock.releaseLock(newLock, (err) => {
+                    expect(err).to.not.be.ok;
+                    done();
+                });
+            });
+        });
+    });
+
     it('should throw if redis is not provided', () => {
         expect(
             () =>

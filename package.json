@@ -1,6 +1,6 @@
 {
     "name": "@triggi/ioredfour",
-    "version": "1.0.0-pre1",
+    "version": "1.1.0-pre1",
     "description": "A redis binary semaphore with some consistency",
     "main": "lib/ioredfour.js",
     "scripts": {
@@ -16,7 +16,7 @@
         "mutex",
         "node"
     ],
-    "author": "Mixmax <hello@mixmax.com> (https://mixmax.com/)",
+    "author": "Mixmax <hello@mixmax.com> (https://mixmax.com/), Daniel Reus (https://github.com/dreusel)",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/olisto/ioredfour/issues"
