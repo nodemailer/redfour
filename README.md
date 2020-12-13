@@ -1,14 +1,14 @@
 ## ioredfour
 
-> Originally forked from **[ioredfour](https://www.npmjs.com/package/ioredfour)**. Main differences being that @triggi/ioredfour provides better consitency in a failover environment, has a Promise-based interface and allows to extend locks.
-
-> Originally forked from **[redfour](https://www.npmjs.com/package/redfour)**. Main difference being that redfour uses [node_redis](https://www.npmjs.com/package/redis) + [node-redis-scripty](https://www.npmjs.com/package/node-redis-scripty) while ioredfour uses [ioredis](https://www.npmjs.com/package/ioredis).
+> Originally forked from **[redfour](https://www.npmjs.com/package/redfour)**. These are the main differences:
+>- redfour uses [node_redis](https://www.npmjs.com/package/redis) + [node-redis-scripty](https://www.npmjs.com/package/node-redis-scripty) while ioredfour uses [ioredis](https://www.npmjs.com/package/ioredis)
+>- ioredfour optionally uses Redis's WAIT command to achieve better consistency in a failover setting (operations will fail if they can't be replicated, instead of confirmed locks getting lost)
+>- ioredfour has `Lock.extendLock()`, which extends the TTL of an owned lock
 
 ## Install
 
-or
 ```sh
-npm install @triggi/ioredfour --save
+npm install ioredfour --save
 ```
 
 ## Usage example
@@ -26,7 +26,7 @@ const Lock = require('ioredfour');
     namespace: 'mylock',
     // Don't consider the lock owned until writes have been replicated at least this many times
     minReplications: 1,
-    // Wait at most this many miliseconds for replication
+    // Wait at most this many milliseconds for replication
     replicationTimeout: 500,
   });
   const id = Math.random();
@@ -70,7 +70,7 @@ const Lock = require('ioredfour');
 We welcome pull requests! Please lint your code.
 
 ## Release History
-* 1.1.0 add Lock.extend, promisified interface, check for replication
+* 1.1.0 add Lock.extendLock, promisified interface, wait for replication
 * 1.0.2-ioredis Forked from redfour and switch node_redis with ioredis
 * 1.0.2 Don't use `instanceof` to determine if the `redis` constructor option is of
         type `redis.RedisClient`.
